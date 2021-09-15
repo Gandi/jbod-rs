@@ -1,0 +1,12 @@
+[Unit]
+Description=Prometheus jbod exporter
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/prometheus-jbod-exporter
+
+[Install]
+WantedBy=multi-user.target
+Alias=prometheus-jbod-exporter.service
