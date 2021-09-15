@@ -26,6 +26,9 @@ It was based on [encled](https://github.com/r5r3/encled) and [WDDCS](https://doc
 * First install: <b>```cargo install cargo-deb```</b>
 * Generate the debian package: <b>```cargo deb -v```</b>
 
+### Crate:
+[https://crates.io/crates/jbod](https://crates.io/crates/jbod)
+
 ### Contributing:
 <a href="https://github.com/Gandi/jbod-rs/graphs/contributors">
   <img src="https://contributors-img.web.app/image?repo=Gandi/jbod-rs" />
