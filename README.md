@@ -25,3 +25,12 @@ It was based on [encled](https://github.com/r5r3/encled) and [WDDCS](https://doc
 ### Debian package:
 * First install: <b>```cargo install cargo-deb```</b>
 * Generate the debian package: <b>```cargo deb -v```</b>
+
+### Contributing:
+<a href="https://github.com/Gandi/jbod-rs/graphs/contributors">
+  <img src="https://contributors-img.web.app/image?repo=Gandi/jbod-rs" />
+</a>
+
+### License:
+
+The project is made available under the BSD 2-Clause license. See the `LICENSE` file for more information.
