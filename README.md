@@ -19,6 +19,9 @@ It was based on [encled](https://github.com/r5r3/encled) and [WDDCS](https://doc
 ### Grafana:
 ![graphana](https://raw.githubusercontent.com/Gandi/jbod-rs/release/gif/jbod-exporter.gif)
 
+### Build the project:
+* Release: <b>```cargo build --release```</b>
+
 ### Debian package:
 * First install: <b>```cargo install cargo-deb```</b>
 * Generate the debian package: <b>```cargo deb -v```</b>
