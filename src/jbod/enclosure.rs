@@ -120,8 +120,8 @@ pub mod BackPlane {
             enclosure_table.add_row(Row::new(vec![
                 Cell::new(&self.slot),
                 Cell::new(&self.device_path),
-                Cell::new(&self.revision),
-                Cell::new(&self.serial),
+                Cell::new(&self.vendor),
+                Cell::new(&self.model),
                 Cell::new(&self.revision),
                 Cell::new(&self.serial),
             ]));
