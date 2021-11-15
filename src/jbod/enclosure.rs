@@ -52,6 +52,10 @@ pub mod BackPlane {
 
     #[derive(Debug)]
     pub struct EnclosureFan {
+        /// The slot number provided by the JBOD
+        pub slot: String,
+        /// The device serial number
+        pub serial: String,
         /// The name of the component provided by the JBOD.
         pub description: String,
         /// The slot position used by `sg_ses`.
@@ -97,6 +101,9 @@ pub mod BackPlane {
         enclosure_table.set_format(*format::consts::FORMAT_NO_BORDER);
         enclosure_table.add_row(Row::new(vec![
             Cell::new("SLOT")
+                .with_style(Attr::Bold)
+                .with_style(Attr::ForegroundColor(color::BLUE)),
+            Cell::new("IDENT")
                 .with_style(Attr::Bold)
                 .with_style(Attr::ForegroundColor(color::BLUE)),
             Cell::new("DESCRIPTION")
@@ -244,11 +251,13 @@ pub mod BackPlane {
                     let _index = index_vec[0];
                     if !_description.is_empty() && !_index.is_empty() {
                         let is_present =
-                            enclosure_fan.iter().any(|c| c.index == _index.to_string());
+                            enclosure_fan.iter().any(|c| c.index == _index.to_string() && c.serial == enclosure.serial);
                         if is_present == false {
                             let (speed, comment): (i64, String) =
                                 get_enclosure_fan_speed(&enclosure.device_path, &_index);
                             enclosure_fan.push(EnclosureFan {
+                                slot: enclosure.slot.clone(),
+                                serial: enclosure.serial.clone(),
                                 description: _description.to_string(),
                                 index: _index.to_string(),
                                 speed: speed,

@@ -120,6 +120,7 @@ fn enclosure_overview(option: &ArgMatches) -> Result<(), ()> {
         let mut fan_table = BackPlane::create_fan_table();
         for fan in enclosure_fan {
             fan_table.add_row(Row::new(vec![
+                Cell::new(&fan.slot),
                 Cell::new(&fan.index),
                 Cell::new(&fan.description),
                 Cell::new(&fan.comment),
