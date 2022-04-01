@@ -1,6 +1,6 @@
 [package]
 name = "jbod"
-version = "1.0.1"
+version = "1.0.2"
 authors = ["Marcelo Araujo <marcelo.araujo@gandi.net>"]
 edition = "2018"
 license = "BSD-2-Clause"
