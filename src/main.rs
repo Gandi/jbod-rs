@@ -87,7 +87,9 @@ fn enclosure_overview(option: &ArgMatches) -> Result<(), ()> {
                         print!(" Map: {:<10}", disk.device_map.green());
                     }
                     print!(" Slot: {:<10}", disk.slot.green());
-
+                    print!(" Vendor: {:<10}", disk.vendor.blue());
+                    print!(" Model: {:<10}", disk.model.blue());
+                    print!(" Serial: {:<10} ", disk.serial.blue());
                     let temp_conv = disk.temperature.parse::<i32>().unwrap();
                     if temp_conv > 45 && temp_conv <= 50 {
                         print!(
