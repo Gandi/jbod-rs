@@ -53,6 +53,12 @@ pub mod DiskShelf {
         pub device_map: String,
         // Disk temperature
         pub temperature: String,
+        // Disk vendor
+        pub vendor: String,
+        // Disk model
+        pub model: String,
+        // Disk serial number
+        pub serial: String,
         // Disk firmware revision
         pub fw_revision: String,
         // Path to led control file
@@ -115,6 +121,78 @@ pub mod DiskShelf {
         }
 
         fw_revision
+    }
+    /// Returns a string with the disk serial number
+    ///
+    /// # Arguments
+    ///
+    /// * `disk` - a string with the device path
+    ///
+    /// # Example
+    /// ```
+    /// let serial = get_disk_serial("/dev/sg100");
+    /// ```
+    ///
+    fn get_disk_serial(disk: String) -> String {
+        let res = fs::read(disk + "/vpd_pg80");
+        let content = match res {
+            Ok(c) => { c.to_vec() },
+            Err(_err) => { "N/A".as_bytes().to_vec() }
+        };
+
+        unsafe {
+            String::from_utf8_unchecked(content.to_vec()).to_string()
+        }
+    }
+
+    /// Returns a string with the disk vendor
+    ///
+    /// # Arguments
+    ///
+    /// * `disk` - a string with the device path
+    ///
+    /// # Example
+    /// ```
+    /// let serial = get_disk_vendor("/dev/sg100");
+    /// ```
+    ///
+    fn get_disk_vendor(disk: String) -> String {
+        let res = fs::read(disk + "/vendor");
+        let content = match res {
+            Ok(c) => { c.to_vec() },
+            Err(_err) => { "N/A".as_bytes().to_vec() }
+        };
+
+        unsafe {
+            let mut s = String::from_utf8_unchecked(content.to_vec()).to_string();
+            s.truncate(s.len()-1);
+            s
+        }
+    }
+
+    /// Returns a string with the disk model
+    ///
+    /// # Arguments
+    ///
+    /// * `disk` - a string with the device path
+    ///
+    /// # Example
+    /// ```
+    /// let serial = get_disk_model("/dev/sg100");
+    /// ```
+    ///
+    fn get_disk_model(disk: String) -> String {
+        let res = fs::read(disk + "/model");
+        let content = match res {
+            Ok(c) => { c.to_vec() },
+            Err(_err) => { "N/A".as_bytes().to_vec() }
+        };
+
+        unsafe {
+            let mut s = String::from_utf8_unchecked(content.to_vec()).to_string();
+            s.truncate(s.len()-1);
+            s
+        }
     }
 
     /// Returns a HashMap with two strings, example: /dev/sg116 and /dev/sddk
@@ -198,7 +276,7 @@ pub mod DiskShelf {
         if Util::path_exists(&disk) {
             let jbod = jbod_disk_map();
             let found_disk: Vec<Disk> =
-                jbod.into_iter().filter(|v| v.device_path == disk).collect();
+                jbod.into_iter().filter(|v| (v.device_path == disk) || (v.device_map == disk)).collect();
             if !found_disk.is_empty() {
                 if Util::path_exists(&found_disk[0].led_locate_path) {
                     fs::write(&found_disk[0].led_locate_path, option.clone())
@@ -243,7 +321,7 @@ pub mod DiskShelf {
         if Util::path_exists(&disk) {
             let jbod = jbod_disk_map();
             let found_disk: Vec<Disk> =
-                jbod.into_iter().filter(|v| v.device_path == disk).collect();
+                jbod.into_iter().filter(|v| (v.device_path == disk) || (v.device_map == disk)).collect();
             if !found_disk.is_empty() {
                 if Util::path_exists(&found_disk[0].led_fault_path) {
                     fs::write(&found_disk[0].led_fault_path, option.clone())
@@ -296,13 +374,16 @@ pub mod DiskShelf {
     fn get_disk_details(
         device: String,
         enclosure_slot: String,
-    ) -> (String, String, String, String, String, String, String) {
+    ) -> (String, String, String, String, String, String, String, String, String, String) {
         let sys_class_enclosure: &str = "/sys/class/enclosure/";
         let mut enclosure = String::new();
         let mut slot = String::new();
         let mut device_path = String::new();
         let mut temperature = String::new();
         let mut fw_revision = String::new();
+        let mut vendor = String::new();
+        let mut model = String::new();
+        let mut serial = String::new();
         let mut disk_locate_led = String::new();
         let mut disk_fault_led = String::new();
 
@@ -311,13 +392,15 @@ pub mod DiskShelf {
         let cmp_slot = _slot.to_lowercase();
         if cmp_slot.contains("slot")
             || cmp_slot.contains("disk")
+            || cmp_slot.contains("array device")
             || cmp_slot.bytes().all(|c| c.is_ascii_digit())
         {
-            let physical_device = sys_class_enclosure.to_string()
+            let generic_device = sys_class_enclosure.to_string()
                 + &enclosure_slot
                 + "/"
                 + &_slot
-                + "/device/scsi_generic/";
+                + "/device";
+            let physical_device = generic_device.clone() + "/scsi_generic/";
             if Util::path_exists(&physical_device) {
                 let physical_path = fs::read_dir(physical_device).unwrap();
                 for dev in physical_path {
@@ -330,6 +413,9 @@ pub mod DiskShelf {
                     device_path = "/dev/".to_string() + &split_dev[8].to_string();
                     temperature = get_disk_temperature(device_path.clone());
                     fw_revision = get_disk_firmware(device_path.clone());
+                    vendor = get_disk_vendor(generic_device.clone().to_string());
+                    model = get_disk_model(generic_device.clone().to_string());
+                    serial = get_disk_serial(generic_device.clone().to_string());
                     disk_locate_led = get_disk_led_locate_path(&enclosure_slot, &split_dev[5]);
                     disk_fault_led = get_disk_led_fault_path(&enclosure_slot, &split_dev[5]);
                 }
@@ -341,6 +427,9 @@ pub mod DiskShelf {
             device_path,
             temperature,
             fw_revision,
+            vendor,
+            model,
+            serial,
             disk_locate_led,
             disk_fault_led,
         );
@@ -374,6 +463,9 @@ pub mod DiskShelf {
                     _device_path,
                     _temperature,
                     _fw_revision,
+                    _vendor,
+                    _model,
+                    _serial,
                     _led_locate_path,
                     _led_fault_path,
                 ) = get_disk_details(path_tostr.to_string(), enclosure.slot.to_string());
@@ -386,6 +478,9 @@ pub mod DiskShelf {
                         device_path: _device_path,
                         temperature: _temperature,
                         fw_revision: _fw_revision,
+                        vendor: _vendor,
+                        model: _model,
+                        serial: _serial,
                         led_locate_path: _led_locate_path,
                         led_fault_path: _led_fault_path,
                     });
