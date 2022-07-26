@@ -261,14 +261,16 @@ pub mod DiskShelf {
     }
 
     /// Here we write 0 or 1 into the disk led file
-    fn set_disk_led_locate(disk: String, option: &str) {
+    fn set_disk_led_locate(disk: &str, option: &str) {
         if Util::path_exists(&disk) {
             let jbod = jbod_disk_map();
-            let found_disk: Vec<Disk> =
-                jbod.into_iter().filter(|v| (v.device_path == disk) || (v.device_map == disk)).collect();
+            let found_disk: Vec<Disk> = jbod
+                .into_iter()
+                .filter(|v| (v.device_path == disk) || (v.device_map == disk))
+                .collect();
             if !found_disk.is_empty() {
                 if Util::path_exists(&found_disk[0].led_locate_path) {
-                    fs::write(&found_disk[0].led_locate_path, option.clone())
+                    fs::write(&found_disk[0].led_locate_path, option)
                         .expect("Unable to write on locate led");
                     match option {
                         "0" => {
@@ -306,11 +308,13 @@ pub mod DiskShelf {
     }
 
     /// Here we write 0 or 1 into the disk led file
-    fn set_disk_led_fault(disk: String, option: &str) {
+    fn set_disk_led_fault(disk: &str, option: &str) {
         if Util::path_exists(&disk) {
             let jbod = jbod_disk_map();
-            let found_disk: Vec<Disk> =
-                jbod.into_iter().filter(|v| (v.device_path == disk) || (v.device_map == disk)).collect();
+            let found_disk: Vec<Disk> = jbod
+                .into_iter()
+                .filter(|v| (v.device_path == disk) || (v.device_map == disk))
+                .collect();
             if !found_disk.is_empty() {
                 if Util::path_exists(&found_disk[0].led_fault_path) {
                     fs::write(&found_disk[0].led_fault_path, option.clone())
@@ -516,28 +520,22 @@ pub mod DiskShelf {
         }
 
         if is_locate {
-            let disk = options
-                .value_of("locate")
-                .unwrap_or(&"/dev/null".to_string())
-                .to_string();
+            let disk = options.value_of("locate").unwrap_or("/dev/null");
             if on {
-                set_disk_led_locate(disk.clone(), &"1".to_string());
+                set_disk_led_locate(disk, "1");
             }
             if off {
-                set_disk_led_locate(disk.clone(), &"0".to_string());
+                set_disk_led_locate(disk, "0");
             }
         }
 
         if is_fault {
-            let disk = options
-                .value_of("fault")
-                .unwrap_or(&"/dev/null".to_string())
-                .to_string();
+            let disk = options.value_of("fault").unwrap_or("/dev/null");
             if on {
-                set_disk_led_fault(disk.clone(), &"1".to_string());
+                set_disk_led_fault(disk, "1");
             }
             if off {
-                set_disk_led_fault(disk.clone(), &"0".to_string());
+                set_disk_led_fault(disk, "0");
             }
         }
 
