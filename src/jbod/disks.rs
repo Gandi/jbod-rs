@@ -209,13 +209,10 @@ pub mod DiskShelf {
             let stdout_lines = stdout_reader.lines();
 
             for line in stdout_lines {
-                let line_unwrap = line.unwrap().to_owned();
+                let line_unwrap = line.unwrap();
                 let output_split: Vec<&str> = line_unwrap.split_whitespace().collect();
-                if output_split.len() > 1 {
-                    disks.insert(output_split[0].to_string(), output_split[1].to_string());
-                } else {
-                    disks.insert(output_split[0].to_string(), "NONE".to_string());
-                }
+                let val = output_split.get(1).unwrap_or(&"NONE");
+                disks.insert(output_split[0].to_string(), val.to_string());
             }
         }
         sg_map_cmd.wait().unwrap();
