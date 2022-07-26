@@ -81,11 +81,12 @@ fn enclosure_overview(option: &ArgMatches) -> Result<(), Box<dyn std::error::Err
                 if enc.slot == disk.enclosure {
                     print!("     `+-");
                     print!(" Disk: {:<10}", disk.device_path.green(),);
-                    if disk.device_map == "NONE" {
-                        print!(" Map: {:<10}", disk.device_map.yellow());
+                    let device_map_color = if disk.device_map == "NONE" {
+                        disk.device_map.yellow()
                     } else {
-                        print!(" Map: {:<10}", disk.device_map.green());
-                    }
+                        disk.device_map.green()
+                    };
+                    print!(" Map: {:<10}", device_map_color);
                     print!(" Slot: {:<10}", disk.slot.green());
                     print!(" Vendor: {:<10}", disk.vendor.blue());
                     print!(" Model: {:<10}", disk.model.blue());
