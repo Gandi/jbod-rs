@@ -367,7 +367,18 @@ pub mod DiskShelf {
     fn get_disk_details(
         device: String,
         enclosure_slot: String,
-    ) -> (String, String, String, String, String, String, String, String, String, String) {
+    ) -> (
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+    ) {
         let sys_class_enclosure: &str = "/sys/class/enclosure/";
         let mut enclosure = String::new();
         let mut slot = String::new();
@@ -388,11 +399,7 @@ pub mod DiskShelf {
             || cmp_slot.contains("array device")
             || cmp_slot.bytes().all(|c| c.is_ascii_digit())
         {
-            let generic_device = sys_class_enclosure.to_string()
-                + &enclosure_slot
-                + "/"
-                + &_slot
-                + "/device";
+            let generic_device = format!("{sys_class_enclosure}{enclosure_slot}/{_slot}/{device}");
             let physical_device = generic_device.clone() + "/scsi_generic/";
             if Util::path_exists(&physical_device) {
                 let physical_path = fs::read_dir(physical_device).unwrap();
@@ -403,18 +410,18 @@ pub mod DiskShelf {
                     let __get_slot: Vec<&str> = split_dev[5].split(',').collect();
                     enclosure = split_dev[4].to_string();
                     slot = __get_slot[0].to_string();
-                    device_path = "/dev/".to_string() + &split_dev[8].to_string();
+                    device_path = format!("/dev/{}", split_dev[8]);
                     temperature = get_disk_temperature(device_path.clone());
                     fw_revision = get_disk_firmware(device_path.clone());
                     vendor = get_disk_vendor(generic_device.clone().to_string());
                     model = get_disk_model(generic_device.clone().to_string());
                     serial = get_disk_serial(generic_device.clone().to_string());
-                    disk_locate_led = get_disk_led_locate_path(&enclosure_slot, &split_dev[5]);
-                    disk_fault_led = get_disk_led_fault_path(&enclosure_slot, &split_dev[5]);
+                    disk_locate_led = get_disk_led_locate_path(&enclosure_slot, split_dev[5]);
+                    disk_fault_led = get_disk_led_fault_path(&enclosure_slot, split_dev[5]);
                 }
             }
         }
-        return (
+        (
             enclosure,
             slot,
             device_path,
@@ -425,7 +432,7 @@ pub mod DiskShelf {
             serial,
             disk_locate_led,
             disk_fault_led,
-        );
+        )
     }
 
     /// Returns a vector of disk structure
