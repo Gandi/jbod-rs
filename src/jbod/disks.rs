@@ -135,14 +135,9 @@ pub mod DiskShelf {
     ///
     fn get_disk_serial(disk: String) -> String {
         let res = fs::read(disk + "/vpd_pg80");
-        let content = match res {
-            Ok(c) => { c.to_vec() },
-            Err(_err) => { "N/A".as_bytes().to_vec() }
-        };
+        let content = res.unwrap_or(b"N/A".to_vec());
 
-        unsafe {
-            String::from_utf8_unchecked(content.to_vec()).to_string()
-        }
+        unsafe { String::from_utf8_unchecked(content.to_vec()) }
     }
 
     /// Returns a string with the disk vendor
@@ -158,16 +153,11 @@ pub mod DiskShelf {
     ///
     fn get_disk_vendor(disk: String) -> String {
         let res = fs::read(disk + "/vendor");
-        let content = match res {
-            Ok(c) => { c.to_vec() },
-            Err(_err) => { "N/A".as_bytes().to_vec() }
-        };
+        let content = res.unwrap_or(b"N/A".to_vec());
 
-        unsafe {
-            let mut s = String::from_utf8_unchecked(content.to_vec()).to_string();
-            s.truncate(s.len()-1);
-            s
-        }
+        let mut s = unsafe { String::from_utf8_unchecked(content.to_vec()) };
+        s.truncate(s.len() - 1);
+        s
     }
 
     /// Returns a string with the disk model
@@ -183,16 +173,11 @@ pub mod DiskShelf {
     ///
     fn get_disk_model(disk: String) -> String {
         let res = fs::read(disk + "/model");
-        let content = match res {
-            Ok(c) => { c.to_vec() },
-            Err(_err) => { "N/A".as_bytes().to_vec() }
-        };
+        let content = res.unwrap_or(b"N/A".to_vec());
 
-        unsafe {
-            let mut s = String::from_utf8_unchecked(content.to_vec()).to_string();
-            s.truncate(s.len()-1);
-            s
-        }
+        let mut s = unsafe { String::from_utf8_unchecked(content.to_vec()) };
+        s.truncate(s.len() - 1);
+        s
     }
 
     /// Returns a HashMap with two strings, example: /dev/sg116 and /dev/sddk
