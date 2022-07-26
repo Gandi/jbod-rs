@@ -510,7 +510,7 @@ pub mod DiskShelf {
     ///
     /// * `options` - a reference of ArgMatches
     ///
-    pub fn jbod_led_switch(options: &ArgMatches) -> Result<(), ()> {
+    pub fn jbod_led_switch(options: &ArgMatches) -> Result<(), Box<dyn std::error::Error>> {
         let is_locate = options.is_present("locate");
         let is_fault = options.is_present("fault");
         let on = options.is_present("on");

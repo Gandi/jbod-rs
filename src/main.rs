@@ -63,7 +63,7 @@ fn help() {
 ///
 /// * `option` - clappy's ArgMatches
 ///
-fn enclosure_overview(option: &ArgMatches) -> Result<(), ()> {
+fn enclosure_overview(option: &ArgMatches) -> Result<(), Box<dyn std::error::Error>> {
     let disks_option = option.is_present("disks");
     let enclosure_option = option.is_present("enclosure");
     let fan_option = option.is_present("fan");
@@ -90,22 +90,18 @@ fn enclosure_overview(option: &ArgMatches) -> Result<(), ()> {
                     print!(" Vendor: {:<10}", disk.vendor.blue());
                     print!(" Model: {:<10}", disk.model.blue());
                     print!(" Serial: {:<10} ", disk.serial.blue());
-                    let temp_conv = disk.temperature.parse::<i32>().unwrap();
-                    if temp_conv > 45 && temp_conv <= 50 {
-                        print!(
-                            "Temp: {}{:<2}",
-                            disk.temperature.yellow().bold(),
-                            "c".yellow().bold()
-                        );
+                    let temp_conv = disk.temperature.parse::<i32>()?;
+                    let (temp, c_colored) = if (45..=50).contains(&temp_conv) {
+                        (disk.temperature.yellow().bold(), "c".yellow().bold())
                     } else if temp_conv > 50 {
-                        print!(
-                            "Temp: {}{:<2}",
+                        (
                             disk.temperature.red().bold().blink(),
-                            "c".red().bold().blink()
-                        );
+                            "c".red().bold().blink(),
+                        )
                     } else {
-                        print!("Temp: {}{:<2}", disk.temperature.green(), "c".green());
-                    }
+                        (disk.temperature.green(), "c".green())
+                    };
+                    print!("Temp: {temp}{c_colored:<2}");
                     println!(" Fw: {}", disk.fw_revision.blue());
                 }
             }
@@ -135,17 +131,17 @@ fn enclosure_overview(option: &ArgMatches) -> Result<(), ()> {
     Ok(())
 }
 
-/// TODO: Rework error handling, perhaps we don't need return Result 
-///
-/// Returns an empty Result for now.
-///
-/// This function forks another binary for the prometheus-exporter. 
+/// This function forks another binary for the prometheus-exporter.
 ///
 /// # Arguments
 ///
-/// * `option` - clappy's ArgMatches
+/// * `option` - clappy's [ArgMatches]
 ///
-fn fork_prometheus(option: &ArgMatches) -> Result<(), ()> {
+/// # Errors
+///
+/// Errors on fork or waitpid are really rare it's bubble up as a boxed error.
+///
+fn fork_prometheus(option: &ArgMatches) -> Result<(), Box<dyn std::error::Error>> {
     let mut default_port = "9945";
     let mut default_address = "0.0.0.0";
 
@@ -160,21 +156,18 @@ fn fork_prometheus(option: &ArgMatches) -> Result<(), ()> {
     match unsafe { fork() } {
         Ok(ForkResult::Parent { child }) => {
             println!("prometheus-exporter pid: {:?}", child);
-            waitpid(Some(child), None).unwrap();
+            waitpid(Some(child), None)?;
             exit(0);
         }
 
         Ok(ForkResult::Child) => {
             Command::new(Util::JBOD_EXPORTER)
                 .args(&[default_address, default_port])
-                .spawn()
-                .expect("Failed to spawn the target process");
+                .spawn()?;
             exit(0);
         }
-        Err(_) => println!("Fork Failed"),
+        Err(e) => Err(Box::new(e)),
     }
-
-    Ok(())
 }
 
 /// The main function that creates the menu.
@@ -268,5 +261,6 @@ fn main() {
         ("led", Some(m)) => DiskShelf::jbod_led_switch(m),
         ("prometheus", Some(m)) => fork_prometheus(m),
         _ => Ok(help()),
-    };
+    }
+    .expect("jbod encountered an internal issue:")
 }
