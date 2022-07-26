@@ -231,16 +231,12 @@ pub mod DiskShelf {
     ///
     fn get_disk_led_locate_path(enclosure_slot: &str, disk_slot: &str) -> String {
         let sys_class_enclosure: &str = "/sys/class/enclosure/";
-        let led_locate_path = sys_class_enclosure.to_string()
-            + enclosure_slot
-            + &"/".to_string()
-            + &disk_slot.to_string()
-            + &"/locate".to_string();
+        let led_locate_path = format!("{sys_class_enclosure}{enclosure_slot}/{disk_slot}/locate");
 
         if Util::path_exists(&led_locate_path) {
-            return led_locate_path;
+            led_locate_path
         } else {
-            return "NONE".to_string();
+            "NONE".to_string()
         }
     }
 
