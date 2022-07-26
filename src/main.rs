@@ -31,11 +31,7 @@
 #[forbid(unsafe_code)]
 use clap::{App, Arg, ArgMatches, SubCommand};
 use colored::*;
-use nix::{
-    sys::wait::waitpid,
-    unistd::{fork, ForkResult},
-};
-use std::process::{exit, Command};
+use std::process::{Command};
 
 extern crate prettytable;
 use prettytable::{Cell, Row};
@@ -148,45 +144,27 @@ fn enclosure_overview(option: &ArgMatches) -> Result<(), ()> {
     Ok(())
 }
 
-/// TODO: Rework error handling, perhaps we don't need return Result 
-///
-/// Returns an empty Result for now.
-///
-/// This function forks another binary for the prometheus-exporter. 
+/// This function run an another child process for the `prometheus-exporter`.
 ///
 /// # Arguments
 ///
 /// * `option` - clappy's ArgMatches
 ///
-fn fork_prometheus(option: &ArgMatches) -> Result<(), ()> {
-    let mut default_port = "9945";
-    let mut default_address = "0.0.0.0";
+/// # Errors
+///
+/// Errors on fork or waitpid are really rare it's bubble up as a boxed error.
+///
+fn fork_prometheus(option: &ArgMatches) -> Result<(), Box<dyn std::error::Error>> {
+    let default_port = option.value_of("port").unwrap_or("9945");
+    let default_address = option.value_of("ip-address").unwrap_or("0.0.0.0");
 
-    if let Some(port) = option.value_of("port") {
-        default_port = port;
-    }
+  let mut child = Command::new(Util::JBOD_EXPORTER)
+    .args(&[default_address, default_port])
+    .spawn()?;
 
-    if let Some(ip) = option.value_of("ip-address") {
-        default_address = ip;
-    }
+    println!("prometheus-exporter pid: {:?}", child.id());
 
-    match unsafe { fork() } {
-        Ok(ForkResult::Parent { child }) => {
-            println!("prometheus-exporter pid: {:?}", child);
-            waitpid(Some(child), None).unwrap();
-            exit(0);
-        }
-
-        Ok(ForkResult::Child) => {
-            Command::new(Util::JBOD_EXPORTER)
-                .args(&[default_address, default_port])
-                .spawn()
-                .expect("Failed to spawn the target process");
-            exit(0);
-        }
-        Err(_) => println!("Fork Failed"),
-    }
-
+    child.wait()?;
     Ok(())
 }
 
@@ -281,7 +259,14 @@ fn main() {
     match matches.subcommand() {
         Some(("list", m)) => enclosure_overview(m),
         Some(("led", m)) => DiskShelf::jbod_led_switch(m),
-        Some(("prometheus", m)) => fork_prometheus(m),
+        // TODO: Remove this special cased code bellow
+        // when other commands will reports their errors to main.
+        Some(("prometheus", m)) => {
+            if let Err(e) = fork_prometheus(m) {
+                eprintln!("jbod-rs encountered the following error: {}", e.to_string());
+            };
+            Ok(())
+        },
         _ => Ok(help()),
     };
 }
