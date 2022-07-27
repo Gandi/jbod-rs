@@ -444,45 +444,51 @@ pub mod DiskShelf {
     /// * `enc_vec` - A vector including all enclosures we want to scan for disks.
     ///
     fn get_disks_per_enclosure(enc_vec: Vec<BackPlane::Enclosure>) -> Vec<Disk> {
-        let mut disk: Vec<Disk> = Vec::new();
-        let sys_class_enclosure: &str = "/sys/class/enclosure/";
+        let mut disk = Vec::new();
+        let sys_class_enclosure = "/sys/class/enclosure/";
         let sg_map = get_disk_sd_map(); // Get all sg_map once in a HashMap
         if !Util::path_exists(sys_class_enclosure) {
             exit(2);
         }
 
         for enclosure in enc_vec {
-            let paths = fs::read_dir(sys_class_enclosure.to_string() + &enclosure.slot).unwrap();
+            let path = format!("{}{}", sys_class_enclosure, enclosure.slot);
+            let paths = fs::read_dir(path).expect("Impossible to open this directory");
             for path in paths {
-                let _get_path = path.unwrap().path();
+                let get_path = path.unwrap().path();
 
-                let path_tostr = _get_path.to_str().unwrap();
+                let path_tostr = get_path
+                    .to_str()
+                    .expect("Cannot get a string out of this path");
                 let (
-                    _enclosure,
-                    _slot,
-                    _device_path,
-                    _temperature,
-                    _fw_revision,
-                    _vendor,
-                    _model,
-                    _serial,
-                    _led_locate_path,
-                    _led_fault_path,
+                    enclosure,
+                    slot,
+                    device_path,
+                    temperature,
+                    fw_revision,
+                    vendor,
+                    model,
+                    serial,
+                    led_locate_path,
+                    led_fault_path,
                 ) = get_disk_details(path_tostr.to_string(), enclosure.slot.to_string());
-
-                if !_device_path.is_empty() {
+                if !device_path.is_empty() {
+                    let device_map = sg_map
+                        .get(&device_path)
+                        .expect("Cannot access device map")
+                        .clone();
                     disk.push(Disk {
-                        enclosure: _enclosure,
-                        slot: _slot,
-                        device_map: sg_map.get(&_device_path).unwrap().to_string(),
-                        device_path: _device_path,
-                        temperature: _temperature,
-                        fw_revision: _fw_revision,
-                        vendor: _vendor,
-                        model: _model,
-                        serial: _serial,
-                        led_locate_path: _led_locate_path,
-                        led_fault_path: _led_fault_path,
+                        enclosure,
+                        slot,
+                        device_map,
+                        device_path,
+                        temperature,
+                        fw_revision,
+                        vendor,
+                        model,
+                        serial,
+                        led_locate_path,
+                        led_fault_path,
                     });
                 }
             }
