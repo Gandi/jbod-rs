@@ -100,26 +100,30 @@ async fn metrics_handler() -> Result<impl Reply, Rejection> {
     let encoder = prometheus::TextEncoder::new();
 
     // Enclosure FAN rpm
-    let mut enclosure_fan = BackPlane::get_enclosure_fan();
-    enclosure_fan.sort_by_key(|f| f.index.clone());
-    for fan in enclosure_fan.iter() {
-        JBOD_FAN_RPM.with_label_values(&[&fan.description, &fan.index])
-            .set(fan.speed);
+    {
+        let mut enclosure_fan = BackPlane::get_enclosure_fan();
+        enclosure_fan.sort_by_key(|f| f.index.clone());
+        for fan in enclosure_fan.iter() {
+            JBOD_FAN_RPM
+                .with_label_values(&[&fan.description, &fan.index])
+                .set(fan.speed);
+        }
     }
-    drop(enclosure_fan);
 
     // Enclosures
     let enclosures = number_of_enclosure_metrics();
     NUMBER_OF_ENCLOSURES.set(enclosures.await);
 
     // Disks slot temperature
-    let mut disks_temperature = DiskShelf::jbod_disk_map();
-    disks_temperature.sort_by_key(|d| d.slot.clone());
-    for disk in disks_temperature.iter() {
-        JBOD_SLOT_TEMPERATURE.with_label_values(&[&disk.slot, &disk.enclosure])
-            .set(disk.temperature.parse().unwrap());
+    {
+        let mut disks_temperature = DiskShelf::jbod_disk_map();
+        disks_temperature.sort_by_key(|d| d.slot.clone());
+        for disk in disks_temperature.iter() {
+            JBOD_SLOT_TEMPERATURE
+                .with_label_values(&[&disk.slot, &disk.enclosure])
+                .set(disk.temperature.parse().unwrap());
+        }
     }
-    drop(disks_temperature);
 
     let mut buffer = Vec::new();
     if let Err(e) = encoder.encode(&REGISTRY.gather(), &mut buffer) {
