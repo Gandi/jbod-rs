@@ -90,12 +90,15 @@ pub mod Util {
     /// # Arguments
     ///
     /// * `s` - a string
-    pub fn is_string_numeric(s: String) -> bool {
-        for c in s.chars() {
-            if !c.is_numeric() {
-                return false;
-            }
-        }
-        return true;
+    /// # Example:
+    /// ```
+    /// assert(!is_string_numeric(&"123");
+    /// assert(!is_string_numeric(String::from("Pikatchu"));
+    /// ```
+    pub fn is_string_numeric<S>(s: S) -> bool
+    where
+        S: AsRef<str>,
+    {
+        s.as_ref().chars().all(char::is_numeric)
     }
 }

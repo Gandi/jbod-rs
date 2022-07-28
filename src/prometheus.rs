@@ -160,14 +160,17 @@ async fn main() {
     let mut ipv4: String = "0.0.0.0".to_string();
 
     if args.len() > 2 {
-        if Util::is_string_numeric(args[2].clone()) {
+        if Util::is_string_numeric(&args[2]) {
             port = args[2].to_string();
         } else {
             println!("Port is not decimal, using default {}", port);
         }
 
-        let t: Vec<bool> = args[1].split(".").map(|x| Util::is_string_numeric(x.to_string())).collect();
-        if !t.iter().any(|&i| i == false) {
+        let t = args[1]
+            .split(".")
+            .map(Util::is_string_numeric)
+            .any(|i| i == false);
+        if !t {
             ipv4 = args[1].to_string();
         } else {
             println!("Using default ipv4: {}", ipv4);
