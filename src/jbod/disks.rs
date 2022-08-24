@@ -275,24 +275,26 @@ pub mod DiskShelf {
     fn set_disk_led_locate(disk: String, option: &str) {
         if Util::path_exists(&disk) {
             let jbod = jbod_disk_map();
-            let found_disk: Vec<Disk> =
-                jbod.into_iter().filter(|v| (v.device_path == disk) || (v.device_map == disk)).collect();
-            if !found_disk.is_empty() {
-                if Util::path_exists(&found_disk[0].led_locate_path) {
-                    fs::write(&found_disk[0].led_locate_path, option.clone())
+            let mut found_disk = jbod
+                .iter()
+                .filter(|v| (v.device_path == disk) || (v.device_map == disk));
+
+            if let Some(found_disk) = found_disk.next() {
+                if Util::path_exists(&found_disk.led_locate_path) {
+                    fs::write(&found_disk.led_locate_path, option)
                         .expect("Unable to write on locate led");
                     match option {
                         "0" => {
                             println!(
                                 "Disk slot: {} {}",
-                                found_disk[0].slot.green().bold(),
+                                found_disk.slot.green().bold(),
                                 option
                             );
                         }
                         "1" => {
                             println!(
                                 "Disk slot: {} {}",
-                                found_disk[0].slot.yellow().blink().bold(),
+                                found_disk.slot.yellow().blink().bold(),
                                 option
                             );
                         }
