@@ -283,23 +283,16 @@ pub mod DiskShelf {
                 if Util::path_exists(&found_disk.led_locate_path) {
                     fs::write(&found_disk.led_locate_path, option)
                         .expect("Unable to write on locate led");
-                    match option {
-                        "0" => {
-                            println!(
-                                "Disk slot: {} {}",
-                                found_disk.slot.green().bold(),
-                                option
-                            );
+
+                    let found_disk = match option {
+                        "0" => found_disk.slot.green().bold(),
+                        "1" => found_disk.slot.yellow().blink().bold(),
+                        _ => {
+                            println!("Option not identified");
+                            return;
                         }
-                        "1" => {
-                            println!(
-                                "Disk slot: {} {}",
-                                found_disk.slot.yellow().blink().bold(),
-                                option
-                            );
-                        }
-                        _ => println!("Option not identified"),
-                    }
+                    };
+                    println!("Disk slot: {} {}", found_disk, option);
                 } else {
                     println!(
                         "{}: {} does not expose locate led",
