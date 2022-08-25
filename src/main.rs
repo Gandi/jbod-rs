@@ -117,7 +117,7 @@ fn enclosure_overview(option: &ArgMatches) -> Result<(), ()> {
                     print!(" Serial: {:<10} ", disk.serial.blue());
                     match color_temp(&disk.temperature) {
                         Some((temp_colored, unit_colored)) => print!("Temp: {}{:<2}", temp_colored, unit_colored),
-                        None => print!("Temp: {:<2}", "Cannot read".red().bold().blink()),
+                        None => print!("Temp: {:<4}", "ERR".red().bold().blink()),
                     }
                     println!(" Fw: {}", disk.fw_revision.blue());
                 }
