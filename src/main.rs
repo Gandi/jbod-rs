@@ -214,6 +214,7 @@ fn main() {
                         .multiple(false)
                         .required(false)
                         .takes_value(false)
+                        .exclusive(false)
                         .help("List fan"),
                 ),
         )
