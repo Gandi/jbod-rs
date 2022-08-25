@@ -188,6 +188,7 @@ fn main() {
         .subcommand(
             SubCommand::with_name("list")
                 .about("list")
+                .arg_required_else_help(true)
                 .arg(
                     Arg::with_name("enclosure")
                         .short('e')
