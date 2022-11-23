@@ -51,6 +51,31 @@ fn help() {
     println!("Use command with help option");
 }
 
+/// Given a string representing a temperature like: [0-9]+ it will
+/// return colored string first for the temperature second for the unit.
+///
+/// Coloration:
+///
+/// - Bellow 50 it's all green
+/// - Between 45 excluded and below 50 included it's yellow bold
+/// - Above it's blinking red you must act maybe :)
+///
+/// If temperature is not readable it return `None` it's caller responsibility
+/// to report it properly.
+///
+fn color_temp(temperature: &str) -> Option<(ColoredString, ColoredString)> {
+    let temp_conv = temperature.parse::<i32>().ok()?;
+    let coloreds = if temp_conv > 45 && temp_conv <= 50 {
+        (temperature.yellow().bold(),
+        "c".yellow().bold())
+    } else if temp_conv > 50 {
+        (temperature.red().bold().blink(), "c".red().bold().blink())
+    } else {
+        (temperature.green(), "c".green())
+    };
+    Some(coloreds)
+}
+
 /// TODO: Rework error handling, perhaps we don't need return Result
 ///
 /// Returns an empty Result for now.
@@ -90,21 +115,9 @@ fn enclosure_overview(option: &ArgMatches) -> Result<(), ()> {
                     print!(" Vendor: {:<10}", disk.vendor.blue());
                     print!(" Model: {:<10}", disk.model.blue());
                     print!(" Serial: {:<10} ", disk.serial.blue());
-                    let temp_conv = disk.temperature.parse::<i32>().unwrap();
-                    if temp_conv > 45 && temp_conv <= 50 {
-                        print!(
-                            "Temp: {}{:<2}",
-                            disk.temperature.yellow().bold(),
-                            "c".yellow().bold()
-                        );
-                    } else if temp_conv > 50 {
-                        print!(
-                            "Temp: {}{:<2}",
-                            disk.temperature.red().bold().blink(),
-                            "c".red().bold().blink()
-                        );
-                    } else {
-                        print!("Temp: {}{:<2}", disk.temperature.green(), "c".green());
+                    match color_temp(&disk.temperature) {
+                        Some((temp_colored, unit_colored)) => print!("Temp: {}{:<2}", temp_colored, unit_colored),
+                        None => print!("Temp: {:<4}", "ERR".red().bold().blink()),
                     }
                     println!(" Fw: {}", disk.fw_revision.blue());
                 }
