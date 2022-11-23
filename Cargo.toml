@@ -25,6 +25,7 @@ prometheus = {version = "0.9", features = ["process"] }
 lazy_static = "1.4"
 futures = { version = "0.3", default-features = false }
 subprocess = "0.2.7"
+regex = "1"
 
 [package.metadata.deb]
 name = "gandi-jbod"

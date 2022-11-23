@@ -33,6 +33,7 @@ pub mod BackPlane {
     use std::fmt;
     use std::io::{BufRead, BufReader, Read, Write};
     use std::process::{Command, Stdio};
+    use regex::Regex;
 
     use crate::utils::helper::Util::{LSSCSI, SG_INQ, SG_SES};
 
@@ -242,31 +243,34 @@ pub mod BackPlane {
                 .stream_stdout()
                 .unwrap();
             let enc_fan = BufReader::new(cmd_run);
-            for encf in enc_fan.lines() {
-                let encf_u = encf.unwrap(); // Don't borrow memory
-                let encf_split: Vec<&str> = encf_u.split("[").collect();
-                if encf_split.len() > 1 {
-                    let index_vec: Vec<&str> = encf_split[1].split("]").collect();
-                    let _description = encf_split[0].trim();
-                    let _index = index_vec[0];
-                    if !_description.is_empty() && !_index.is_empty() {
+
+            // Build regex
+            let re = Regex::new("(?P<desc>.*?)\\[(?P<id>-?\\d+,-?\\d+)\\].*Cooling").unwrap();
+
+            enc_fan.lines()
+                .filter_map(|l| l.ok())
+                .filter(|l| re.is_match(l.as_str()))
+                .for_each(|x| {
+                    let m = re.captures(x.as_str()).unwrap();
+                    if m.name("id").is_some() {
+                        let _idx = m.name("id").unwrap().as_str();
+                        let _desc = m.name("desc").unwrap().as_str(); // Empty string if no match
                         let is_present =
-                            enclosure_fan.iter().any(|c| c.index == _index.to_string() && c.serial == enclosure.serial);
+                            enclosure_fan.iter().any(|c| c.index == _idx && c.serial == enclosure.serial);
                         if is_present == false {
                             let (speed, comment): (i64, String) =
-                                get_enclosure_fan_speed(&enclosure.device_path, &_index);
+                                get_enclosure_fan_speed(&enclosure.device_path, _idx);
                             enclosure_fan.push(EnclosureFan {
                                 slot: enclosure.slot.clone(),
                                 serial: enclosure.serial.clone(),
-                                description: _description.to_string(),
-                                index: _index.to_string(),
+                                description: _desc.to_string(),
+                                index: _idx.to_string(),
                                 speed: speed,
                                 comment: comment,
                             });
                         }
                     }
-                }
-            }
+                });
         }
         enclosure_fan
     }
