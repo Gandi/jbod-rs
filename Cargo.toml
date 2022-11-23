@@ -14,7 +14,7 @@ name = "prometheus-jbod-exporter"
 path = "src/prometheus.rs"
 
 [dependencies]
-clap = { version = "2.31.2", features = ["yaml"] }
+clap = { version = "3.2" }
 colored = "2"
 prettytable-rs = "0.8.0"
 execute = "0.2.9"

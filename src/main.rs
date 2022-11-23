@@ -188,9 +188,10 @@ fn main() {
         .subcommand(
             SubCommand::with_name("list")
                 .about("list")
+                .arg_required_else_help(true)
                 .arg(
                     Arg::with_name("enclosure")
-                        .short("e")
+                        .short('e')
                         .long("enclosure")
                         .multiple(false)
                         .required(false)
@@ -199,7 +200,7 @@ fn main() {
                 )
                 .arg(
                     Arg::with_name("disks")
-                        .short("d")
+                        .short('d')
                         .long("disks")
                         .multiple(false)
                         .required(false)
@@ -208,11 +209,12 @@ fn main() {
                 )
                 .arg(
                     Arg::with_name("fan")
-                        .short("f")
+                        .short('f')
                         .long("fan")
                         .multiple(false)
                         .required(false)
                         .takes_value(false)
+                        .exclusive(false)
                         .help("List fan"),
                 ),
         )
@@ -221,7 +223,7 @@ fn main() {
                 .about("led")
                 .arg(
                     Arg::with_name("locate")
-                        .short("l")
+                        .short('l')
                         .long("locate")
                         .required(false)
                         .multiple(true)
@@ -230,7 +232,7 @@ fn main() {
                 )
                 .arg(
                     Arg::with_name("fault")
-                        .short("f")
+                        .short('f')
                         .long("fault")
                         .required(false)
                         .multiple(true)
@@ -245,7 +247,7 @@ fn main() {
                 .about("Prometheus")
                 .arg(
                     Arg::with_name("port")
-                        .short("p")
+                        .short('p')
                         .long("port")
                         .required(false)
                         .value_name("PORT")
@@ -253,7 +255,7 @@ fn main() {
                 )
                 .arg(
                     Arg::with_name("ip-address")
-                        .short("ip")
+                        .alias("ip")
                         .long("ip-address")
                         .required(false)
                         .value_name("IPADDRESS")
@@ -264,9 +266,9 @@ fn main() {
 
     // Here it matches the menu options with its respective functions.
     match matches.subcommand() {
-        ("list", Some(m)) => enclosure_overview(m),
-        ("led", Some(m)) => DiskShelf::jbod_led_switch(m),
-        ("prometheus", Some(m)) => fork_prometheus(m),
+        Some(("list", m)) => enclosure_overview(m),
+        Some(("led", m)) => DiskShelf::jbod_led_switch(m),
+        Some(("prometheus", m)) => fork_prometheus(m),
         _ => Ok(help()),
     };
 }
