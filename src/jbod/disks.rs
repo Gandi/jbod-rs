@@ -406,7 +406,7 @@ pub mod DiskShelf {
             || cmp_slot.contains("array device")
             || cmp_slot.bytes().all(|c| c.is_ascii_digit())
         {
-            let generic_device = format!("{sys_class_enclosure}{enclosure_slot}/{_slot}/{device}");
+            let generic_device = format!("{sys_class_enclosure}{enclosure_slot}/{_slot}/device");
             let physical_device =  format!("{generic_device}/scsi_generic/");
 
             if Util::path_exists(&physical_device) {
