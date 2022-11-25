@@ -31,8 +31,8 @@
 #[allow(non_snake_case)]
 pub mod BackPlane {
     use std::fmt;
-    use std::io::{BufRead, BufReader, Read, Write};
-    use std::process::{Command, Stdio};
+    use std::io::{BufRead, BufReader};
+    use std::process::{Command};
     use regex::Regex;
 
     use crate::utils::helper::Util::{LSSCSI, SG_INQ, SG_SES};

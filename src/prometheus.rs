@@ -37,7 +37,7 @@ use std::env;
 use std::result::Result;
 use warp::{Filter, Rejection, Reply};
 use prometheus::{
-    HistogramOpts, HistogramVec, IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts, Registry,
+    IntGauge, IntGaugeVec, Opts, Registry,
 };
 
 mod jbod;
