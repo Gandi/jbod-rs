@@ -52,7 +52,7 @@ pub mod Util {
     ///
     /// * `path` - a string reference
     pub fn is_folder_empty(path: &str) -> io::Result<bool> {
-        Ok(fs::read_dir(path)?.take(1).count() == 0)
+        Ok(fs::read_dir(path)?.next().is_none())
     }
 
     /// Verify if sysclass folder exists or otherwise exit and
