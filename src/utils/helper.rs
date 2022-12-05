@@ -31,6 +31,8 @@
 #[allow(non_snake_case)]
 pub mod Util {
     use colored::*;
+    use std::fs;
+    use std::io;
     use std::path::Path;
     use std::process::exit;
 
@@ -41,6 +43,37 @@ pub mod Util {
     pub const SG_SES: &str = "/usr/bin/sg_ses";
     pub const SGINFO: &str = "/usr/bin/sginfo";
     pub const JBOD_EXPORTER: &str = "/usr/bin/prometheus-jbod-exporter";
+
+    /// Returns an enum with true or false if a directory is empty
+    ///
+    /// This function verify if the directory is empty.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - a string reference
+    pub fn is_folder_empty(path: &str) -> io::Result<bool> {
+        Ok(fs::read_dir(path)?.next().is_none())
+    }
+
+    /// Verify if sysclass folder exists or otherwise exit and
+    /// provide software alternatives to jbod-rs.
+    pub fn verify_sysclass_folder(path: &str) {
+        if is_folder_empty(path).unwrap_or(false) {
+            println!(
+                "{} {} {}",
+                "==> ".red().bold(),
+                "jbod-rs not supported in this machine".bold(),
+                " <==".red().bold()
+            );
+            print!("{}", ":: ".bold().red());
+            println!("Use one of these alternatives: ");
+            println!(" - lsscsi");
+            println!(" - sas-lsi-tools");
+            println!(" - sas2ircu-status");
+            println!(" - sg3-utils");
+            exit(1);
+        }
+    }
 
     /// Returns true or false for a given path
     ///

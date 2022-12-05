@@ -136,13 +136,11 @@ pub mod DiskShelf {
     fn get_disk_serial(disk: String) -> String {
         let res = fs::read(disk + "/vpd_pg80");
         let content = match res {
-            Ok(c) => { c.to_vec() },
-            Err(_err) => { "N/A".as_bytes().to_vec() }
+            Ok(c) => c.to_vec(),
+            Err(_err) => "N/A".as_bytes().to_vec(),
         };
 
-        unsafe {
-            String::from_utf8_unchecked(content.to_vec()).to_string()
-        }
+        unsafe { String::from_utf8_unchecked(content.to_vec()).to_string() }
     }
 
     /// Returns a string with the disk vendor
@@ -159,13 +157,13 @@ pub mod DiskShelf {
     fn get_disk_vendor(disk: String) -> String {
         let res = fs::read(disk + "/vendor");
         let content = match res {
-            Ok(c) => { c.to_vec() },
-            Err(_err) => { "N/A".as_bytes().to_vec() }
+            Ok(c) => c.to_vec(),
+            Err(_err) => "N/A".as_bytes().to_vec(),
         };
 
         unsafe {
             let mut s = String::from_utf8_unchecked(content.to_vec()).to_string();
-            s.truncate(s.len()-1);
+            s.truncate(s.len() - 1);
             s
         }
     }
@@ -184,13 +182,13 @@ pub mod DiskShelf {
     fn get_disk_model(disk: String) -> String {
         let res = fs::read(disk + "/model");
         let content = match res {
-            Ok(c) => { c.to_vec() },
-            Err(_err) => { "N/A".as_bytes().to_vec() }
+            Ok(c) => c.to_vec(),
+            Err(_err) => "N/A".as_bytes().to_vec(),
         };
 
         unsafe {
             let mut s = String::from_utf8_unchecked(content.to_vec()).to_string();
-            s.truncate(s.len()-1);
+            s.truncate(s.len() - 1);
             s
         }
     }
@@ -234,6 +232,9 @@ pub mod DiskShelf {
     ///
     fn get_disk_led_locate_path(enclosure_slot: &str, disk_slot: &str) -> String {
         let sys_class_enclosure: &str = "/sys/class/enclosure/";
+
+        Util::verify_sysclass_folder(sys_class_enclosure);
+
         let led_locate_path = sys_class_enclosure.to_string()
             + enclosure_slot
             + &"/".to_string()
@@ -258,6 +259,9 @@ pub mod DiskShelf {
     ///
     fn get_disk_led_fault_path(enclosure_slot: &str, disk_slot: &str) -> String {
         let sys_class_enclosure: &str = "/sys/class/enclosure/";
+
+        Util::verify_sysclass_folder(sys_class_enclosure);
+
         let led_fault_path = sys_class_enclosure.to_string()
             + enclosure_slot
             + &"/".to_string()
@@ -275,8 +279,10 @@ pub mod DiskShelf {
     fn set_disk_led_locate(disk: String, option: &str) {
         if Util::path_exists(&disk) {
             let jbod = jbod_disk_map();
-            let found_disk: Vec<Disk> =
-                jbod.into_iter().filter(|v| (v.device_path == disk) || (v.device_map == disk)).collect();
+            let found_disk: Vec<Disk> = jbod
+                .into_iter()
+                .filter(|v| (v.device_path == disk) || (v.device_map == disk))
+                .collect();
             if !found_disk.is_empty() {
                 if Util::path_exists(&found_disk[0].led_locate_path) {
                     fs::write(&found_disk[0].led_locate_path, option.clone())
@@ -320,8 +326,10 @@ pub mod DiskShelf {
     fn set_disk_led_fault(disk: String, option: &str) {
         if Util::path_exists(&disk) {
             let jbod = jbod_disk_map();
-            let found_disk: Vec<Disk> =
-                jbod.into_iter().filter(|v| (v.device_path == disk) || (v.device_map == disk)).collect();
+            let found_disk: Vec<Disk> = jbod
+                .into_iter()
+                .filter(|v| (v.device_path == disk) || (v.device_map == disk))
+                .collect();
             if !found_disk.is_empty() {
                 if Util::path_exists(&found_disk[0].led_fault_path) {
                     fs::write(&found_disk[0].led_fault_path, option.clone())
@@ -401,13 +409,16 @@ pub mod DiskShelf {
         let path_tostr_spl: Vec<&str> = device.split('/').collect();
         let _slot = path_tostr_spl[5];
         let cmp_slot = _slot.to_lowercase();
+
+        Util::verify_sysclass_folder(sys_class_enclosure);
+
         if cmp_slot.contains("slot")
             || cmp_slot.contains("disk")
             || cmp_slot.contains("array device")
             || cmp_slot.bytes().all(|c| c.is_ascii_digit())
         {
             let generic_device = format!("{sys_class_enclosure}{enclosure_slot}/{_slot}/device");
-            let physical_device =  format!("{generic_device}/scsi_generic/");
+            let physical_device = format!("{generic_device}/scsi_generic/");
 
             if Util::path_exists(&physical_device) {
                 let physical_path = fs::read_dir(physical_device).unwrap();
@@ -455,9 +466,8 @@ pub mod DiskShelf {
         let mut disk: Vec<Disk> = Vec::new();
         let sys_class_enclosure: &str = "/sys/class/enclosure/";
         let sg_map = get_disk_sd_map(); // Get all sg_map once in a HashMap
-        if !Util::path_exists(sys_class_enclosure) {
-            exit(2);
-        }
+
+        Util::verify_sysclass_folder(sys_class_enclosure);
 
         for enclosure in enc_vec {
             let paths = fs::read_dir(sys_class_enclosure.to_string() + &enclosure.slot).unwrap();
