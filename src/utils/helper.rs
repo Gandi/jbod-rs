@@ -3,7 +3,7 @@
  *
  * BSD 2-Clause License
  *
- * Copyright (c) 2021, Gandi S.A.S.
+ * Copyright (c) 2021-2023, Gandi S.A.S.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
