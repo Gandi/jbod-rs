@@ -16,7 +16,7 @@ path = "src/prometheus.rs"
 [dependencies]
 clap = { version = "3.2" }
 colored = "2"
-prettytable-rs = "0.8.0"
+prettytable-rs = "0.10.0"
 nix = "0.22.0"
 tokio = { version = "0.2", features = ["macros", "rt-threaded", "time"] }
 warp = "0.3.3"
