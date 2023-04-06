@@ -16,11 +16,11 @@ path = "src/prometheus.rs"
 [dependencies]
 clap = { version = "3.2" }
 colored = "2"
-prettytable-rs = "0.8.0"
-nix = "0.22.0"
-tokio = { version = "0.2", features = ["macros", "rt-threaded", "time"] }
+prettytable-rs = "0.10.0"
+nix = "0.26.0"
+tokio = { version = "1", features = ["full"] }
 warp = "0.3.3"
-prometheus = {version = "0.9", features = ["process"] }
+prometheus = {version = "0.13", features = ["process"] }
 lazy_static = "1.4"
 futures = { version = "0.3", default-features = false }
 subprocess = "0.2.7"
