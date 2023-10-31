@@ -116,8 +116,13 @@ async fn metrics_handler() -> Result<impl Reply, Rejection> {
     let mut disks_temperature = DiskShelf::jbod_disk_map();
     disks_temperature.sort_by_key(|d| d.slot.clone());
     for disk in disks_temperature.iter() {
-        JBOD_SLOT_TEMPERATURE.with_label_values(&[&disk.slot, &disk.enclosure])
-            .set(disk.temperature.parse().unwrap());
+        match disk.temperature.parse() {
+            Ok(temperature) => {
+                JBOD_SLOT_TEMPERATURE
+                .with_label_values(&[&disk.slot, &disk.enclosure])
+                .set(temperature)},
+            Err(e) => eprintln!("Failed to read temperature: {:?} of disk: {:?}", e, disk),
+        }
     }
     drop(disks_temperature);
 
